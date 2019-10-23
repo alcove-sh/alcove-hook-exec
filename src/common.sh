@@ -235,9 +235,9 @@ restart() {
 reload() { :; }
 
 action() {
-	local action="${1}"
+	local _action="${1}"
 
-	case "${action}" in
+	case "${_action}" in
 		"start")
 			start
 			;;
