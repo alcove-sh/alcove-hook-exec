@@ -8,6 +8,8 @@
 # Constants
 ##################################################
 
+readonly __VERSION__="1"
+
 readonly COLOR_RESET="\033[0m"
 readonly COLOR_BOLD_RED="\033[1;31m"
 readonly COLOR_BOLD_GREEN="\033[1;32m"
@@ -277,3 +279,6 @@ if [ -z "${pidfile}" ]; then
 	ewarn "\${pidfile} is empty or not set!"
 fi
 
+if [ "${USER}" != "root" ]; then
+	eend 1 "requires root to manage daemons!"
+fi
