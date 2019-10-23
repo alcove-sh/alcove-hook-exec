@@ -14,6 +14,7 @@ readonly COLOR_RESET="\033[0m"
 readonly COLOR_BOLD_RED="\033[1;31m"
 readonly COLOR_BOLD_GREEN="\033[1;32m"
 readonly COLOR_BOLD_YELLOW="\033[1;33m"
+readonly COLOR_BOLD_BLUE="\033[1;34m"
 
 #readonly CURSOR_BEGIN="\r"
 #readonly CURSOR_BEGIN_CLEAR="\r\033[K"
@@ -86,18 +87,18 @@ eend() {
 	# NOTE: `stat="[ ok ]"; echo "${#stat}"` -> 6
 
 	if [ "${status}" = "0" ]; then
-		printf "${CURSOR_GOTO}[ ${COLOR_BOLD_GREEN}ok${COLOR_RESET} ]\n" \
-			"$((LINES - 1))" "$((COLUMNS - 6))"
+		printf "${CURSOR_GOTO}${COLOR_BOLD_BLUE}[ ${COLOR_BOLD_GREEN}ok ${COLOR_BOLD_BLUE}]${COLOR_RESET}\n" \
+			"$((LINES - 1))" "$((COLUMNS - 5))"
 	else
 		if [ -n "${*}" ]; then
 			eerror "${*}"
-			printf "${CURSOR_GOTO}[ ${COLOR_BOLD_RED}!!${COLOR_RESET} ]\n" \
-				"$((LINES - 1))" "$((COLUMNS - 6))"
+			printf "${CURSOR_GOTO}${COLOR_BOLD_BLUE}[ ${COLOR_BOLD_RED}!! ${COLOR_BOLD_BLUE}]${COLOR_RESET}\n" \
+				"$((LINES - 1))" "$((COLUMNS - 5))"
 
 			exit 1
 		else
-			printf "${CURSOR_GOTO}[ ${COLOR_BOLD_RED}!!${COLOR_RESET} ]\n" \
-				"$((LINES - 1))" "$((COLUMNS - 6))"
+			printf "${CURSOR_GOTO}${COLOR_BOLD_BLUE}[ ${COLOR_BOLD_RED}!! ${COLOR_BOLD_BLUE}]${COLOR_RESET}\n" \
+				"$((LINES - 1))" "$((COLUMNS - 5))"
 
 			exit 1
 		fi
