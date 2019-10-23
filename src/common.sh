@@ -120,10 +120,12 @@ yesno() {
 		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
 			return 0
 			;;
-		[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0)
-			return 1
-			;;
+		#[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0)
+		#	return 1
+		#	;;
 	esac
+
+	return 1
 }
 
 noyes() { :; }
