@@ -14,6 +14,6 @@ stop_post() {
 }
 
 
-action "${@}"
+action "${1}"
 ```
 

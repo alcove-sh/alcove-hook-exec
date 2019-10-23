@@ -8,11 +8,11 @@
 # Constants
 ##################################################
 
-COLOR_RESET="\033[0m"
-#COLOR_REPRINT="\r\033[K"
-COLOR_BOLD_RED="\033[1;31m"
-COLOR_BOLD_GREEN="\033[1;32m"
-COLOR_BOLD_YELLOW="\033[1;33m"
+readonly COLOR_RESET="\033[0m"
+#readonly COLOR_REPRINT="\r\033[K"
+readonly COLOR_BOLD_RED="\033[1;31m"
+readonly COLOR_BOLD_GREEN="\033[1;32m"
+readonly COLOR_BOLD_YELLOW="\033[1;33m"
 
 ##################################################
 # User's Variables
@@ -48,18 +48,6 @@ __hack_stdout__() {
 # Common Functions
 ##################################################
 
-yesno() {
-	local value="${1}"
-
-	case "${value}" in
-		"true"|"yes"|"on"|"1")
-			return 0
-			;;
-	esac
-
-	return 1
-}
-noyes() { :; }
 ebegin() {
 	printf " ${COLOR_BOLD_GREEN}*${COLOR_RESET} %s ...\n" "${*}"
 }
@@ -77,9 +65,7 @@ eend() {
 	#	0:	ok
 	#	1:	fail
 
-	if [ "${#}" -lt 1 ]; then
-		exit 0
-	fi
+	[ "${#}" -lt 1 ] && exit 0
 
 	local status="${1}"
 
@@ -110,6 +96,42 @@ eend() {
 
 	exit 0
 }
+yesno()
+{
+	[ -z "${1}" ] && return 1
+
+	# Check the value directly so people can do:
+	# yesno ${VAR}
+	case "${1}" in
+		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
+			return 0
+			;;
+		[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0)
+			return 1
+			;;
+	esac
+
+	# Check the value of the var so people can do:
+	# yesno VAR
+	# Note: this breaks when the var contains a double quote.
+	local value=""
+
+	eval value=\"\$${1}\"
+
+	case "${1}" in
+		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
+			return 0
+			;;
+		[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0)
+			return 1
+			;;
+		*)
+			ewarn "\$${1} is not set properly";
+			return 2
+			;;
+	esac
+}
+noyes() { :; }
 start_pre() { :; }
 start() {
 	local _background=""
