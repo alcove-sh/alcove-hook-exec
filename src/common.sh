@@ -54,15 +54,19 @@ __hack_stdout__() {
 ebegin() {
 	printf " ${COLOR_BOLD_GREEN}*${COLOR_RESET} %s ...\n" "${*}"
 }
+
 einfo() {
 	printf " ${COLOR_BOLD_GREEN}*${COLOR_RESET} %s\n" "${*}"
 }
+
 ewarn() {
 	printf " ${COLOR_BOLD_YELLOW}*${COLOR_RESET} %s\n" "${*}"
 }
+
 eerror() {
 	printf " ${COLOR_BOLD_RED}*${COLOR_RESET} %s\n" "${*}"
 }
+
 eend() {
 	# exit codes
 	#	0:	ok
@@ -99,6 +103,7 @@ eend() {
 
 	exit 0
 }
+
 yesno() {
 	# return codes
 	#	0:	ok
@@ -110,6 +115,7 @@ yesno() {
 
 	# Check the value directly so people can do:
 	# yesno ${VAR}
+
 	case "${value}" in
 		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
 			return 0
@@ -119,8 +125,11 @@ yesno() {
 			;;
 	esac
 }
+
 noyes() { :; }
+
 start_pre() { :; }
+
 start() {
 	local _background=""
 
@@ -165,8 +174,11 @@ start() {
 
 	eend "${?}" "Failed to start ${name:-"${0}"}"
 }
+
 start_post() { :; }
+
 stop_pre() { :; }
+
 stop() {
 	local _progress=""
 
@@ -186,7 +198,9 @@ stop() {
 
 	eend "${?}" "Failed to stop ${name:-"${0}"}"
 }
+
 stop_post() { :; }
+
 status() {
 	# return codes
 	#	0:	running
@@ -209,10 +223,13 @@ status() {
 	einfo "status: stopped"
 	return 1
 }
+
 restart() {
 	stop && start
 }
+
 reload() { :; }
+
 action() {
 	local action="${1}"
 
@@ -237,6 +254,7 @@ action() {
 			;;
 	esac
 }
+
 
 ##################################################
 # Apply Pre-hacks
