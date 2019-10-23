@@ -9,10 +9,13 @@
 ##################################################
 
 readonly COLOR_RESET="\033[0m"
-#readonly COLOR_REPRINT="\r\033[K"
 readonly COLOR_BOLD_RED="\033[1;31m"
 readonly COLOR_BOLD_GREEN="\033[1;32m"
 readonly COLOR_BOLD_YELLOW="\033[1;33m"
+
+#readonly CURSOR_BEGIN="\r"
+#readonly CURSOR_BEGIN_CLEAR="\r\033[K"
+readonly CURSOR_GOTO="\033[%d;%dH"
 
 ##################################################
 # User's Variables
@@ -77,17 +80,17 @@ eend() {
 	# NOTE: `stat="[ ok ]"; echo "${#stat}"` -> 6
 
 	if [ "${status}" = "0" ]; then
-		printf "\033[%d;%dH[ ${COLOR_BOLD_GREEN}ok${COLOR_RESET} ]\n" \
+		printf "${CURSOR_GOTO}[ ${COLOR_BOLD_GREEN}ok${COLOR_RESET} ]\n" \
 			"$((LINES - 1))" "$((COLUMNS - 6))"
 	else
 		if [ -n "${*}" ]; then
 			eerror "${*}"
-			printf "\033[%d;%dH[ ${COLOR_BOLD_RED}!!${COLOR_RESET} ]\n" \
+			printf "${CURSOR_GOTO}[ ${COLOR_BOLD_RED}!!${COLOR_RESET} ]\n" \
 				"$((LINES - 1))" "$((COLUMNS - 6))"
 
 			exit 1
 		else
-			printf "\033[%d;%dH[ ${COLOR_BOLD_RED}!!${COLOR_RESET} ]\n" \
+			printf "${CURSOR_GOTO}[ ${COLOR_BOLD_RED}!!${COLOR_RESET} ]\n" \
 				"$((LINES - 1))" "$((COLUMNS - 6))"
 
 			exit 1
@@ -96,38 +99,23 @@ eend() {
 
 	exit 0
 }
-yesno()
-{
-	[ -z "${1}" ] && return 1
+yesno() {
+	# return codes
+	#	0:	ok
+	#	1:	fail
+
+	[ "${#}" -lt 1 ] && return 1
+
+	local value="${1}"
 
 	# Check the value directly so people can do:
 	# yesno ${VAR}
-	case "${1}" in
+	case "${value}" in
 		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
 			return 0
 			;;
 		[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0)
 			return 1
-			;;
-	esac
-
-	# Check the value of the var so people can do:
-	# yesno VAR
-	# Note: this breaks when the var contains a double quote.
-	local value=""
-
-	eval value=\"\$${1}\"
-
-	case "${1}" in
-		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
-			return 0
-			;;
-		[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0)
-			return 1
-			;;
-		*)
-			ewarn "\$${1} is not set properly";
-			return 2
 			;;
 	esac
 }
