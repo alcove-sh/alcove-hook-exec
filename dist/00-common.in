@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2019 The Alcove Project Authors.
 readonly __VERSION__="1"
 readonly COLOR_RESET="\033[0m"
 readonly COLOR_BOLD_RED="\033[1;31m"
@@ -19,6 +20,29 @@ __hack_stdout__() {
 __hack_environ__
 printf "\033[%d;0H" "${LINES}"
 }
+action() {
+local _action="${1}"
+case "${_action}" in
+"start")
+start
+;;
+"stop")
+stop
+;;
+"reload")
+reload
+;;
+"restart")
+restart
+;;
+"status")
+status
+;;
+*)
+einfo "Usage: <start|stop|reload|restart|status>"
+;;
+esac
+}
 ebegin() {
 printf " ${COLOR_BOLD_GREEN}*${COLOR_RESET} %s ...\n" "${*}"
 }
@@ -33,10 +57,10 @@ printf " ${COLOR_BOLD_RED}*${COLOR_RESET} %s\n" "${*}"
 }
 eend() {
 [ "${#}" -lt 1 ] && exit 0
-local status="${1}"
-shift # skip status
+local _status="${1}"
+shift # skip _status
 __hack_environ__
-if [ "${status}" = "0" ]; then
+if [ "${_status}" = "0" ]; then
 printf "${CURSOR_GOTO}${COLOR_BOLD_BLUE}[ ${COLOR_BOLD_GREEN}ok ${COLOR_BOLD_BLUE}]${COLOR_RESET}\n" \
 "$((LINES - 1))" "$((COLUMNS - 5))"
 else
@@ -82,7 +106,7 @@ output_logger_arg="--stdout-logger \"${output_logger}\""
 [ -n "${error_logger}" ] &&
 error_logger_arg="--stderr-logger \"${error_logger}\""
 start_pre && \
-eval "start-stop-daemon --start \
+eval 'start-stop-daemon --start \
 --exec ${command} \
 ${chroot:+--chroot} ${chroot} \
 ${directory:+--chdir} ${directory} \
@@ -96,7 +120,7 @@ ${command_user+--user} ${command_user} \
 ${umask+--umask} ${umask} \
 ${_background} ${start_stop_daemon_args} \
 -- ${command_args} ${command_args_background} \
-" && start_post
+' && start_post
 eend "${?}" "Failed to start ${name:-"${0}"}"
 }
 start_post() { :; }
@@ -106,18 +130,19 @@ local _progress=""
 ebegin "Stopping ${name:-"${0}"}"
 yesno "${command_progress}" && _progress="--progress"
 stop_pre && \
-eval "start-stop-daemon --stop \
+eval 'start-stop-daemon --stop \
 ${retry:+--retry} ${retry} \
 ${command:+--exec} ${command} \
 ${procname:+--name} ${procname} \
 ${pidfile:+--pidfile} ${chroot}${pidfile} \
 ${stopsig:+--signal} ${stopsig} \
 ${_progress} \
-" && stop_post 
+' && stop_post 
 eend "${?}" "Failed to stop ${name:-"${0}"}"
 }
 stop_post() { :; }
 status() {
+local pid=""
 if [ -f "${pidfile}" ]; then
 while read -r pid; do
 if [ -d "/proc/${pid}" ]; then
@@ -135,29 +160,6 @@ restart() {
 stop && start
 }
 reload() { :; }
-action() {
-local _action="${1}"
-case "${_action}" in
-"start")
-start
-;;
-"stop")
-stop
-;;
-"reload")
-reload
-;;
-"restart")
-restart
-;;
-"status")
-status
-;;
-*)
-einfo "Usage: <start|stop|reload|restart|status>"
-;;
-esac
-}
 __hack_environ__
 __hack_stdout__
 if [ -z "${command}" ]; then

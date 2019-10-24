@@ -6,5 +6,5 @@ command="/usr/bin/qbittorrent-nox"
 
 . "${HERE}"/common.in
 
-action "$1"
+action "${1}"
 

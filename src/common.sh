@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2019 Alcove Project Authors.
+# Copyright (C) 2018-2019 The Alcove Project Authors.
 
 #
 # Maintainer: urain39 <urain39[AT]qq[DOT]com>
@@ -54,6 +54,35 @@ __hack_stdout__() {
 # Common Functions
 ##################################################
 
+action() {
+	# return codes
+	#	0:	ok
+	#	1:	fail
+
+	local _action="${1}"
+
+	case "${_action}" in
+		"start")
+			start
+			;;
+		"stop")
+			stop
+			;;
+		"reload")
+			reload
+			;;
+		"restart")
+			restart
+			;;
+		"status")
+			status
+			;;
+		*)
+			einfo "Usage: <start|stop|reload|restart|status>"
+			;;
+	esac
+}
+
 ebegin() {
 	printf " ${COLOR_BOLD_GREEN}*${COLOR_RESET} %s ...\n" "${*}"
 }
@@ -77,16 +106,16 @@ eend() {
 
 	[ "${#}" -lt 1 ] && exit 0
 
-	local status="${1}"
+	local _status="${1}"
 
-	shift # skip status
+	shift # skip _status
 
 	# for ash & dash
 	__hack_environ__
 
 	# NOTE: `stat="[ ok ]"; echo "${#stat}"` -> 6
 
-	if [ "${status}" = "0" ]; then
+	if [ "${_status}" = "0" ]; then
 		printf "${CURSOR_GOTO}${COLOR_BOLD_BLUE}[ ${COLOR_BOLD_GREEN}ok ${COLOR_BOLD_BLUE}]${COLOR_RESET}\n" \
 			"$((LINES - 1))" "$((COLUMNS - 5))"
 	else
@@ -133,6 +162,10 @@ yesno() {
 
 noyes() { :; }
 
+##################################################
+# Default Actions
+##################################################
+
 start_pre() { :; }
 
 start() {
@@ -161,7 +194,7 @@ start() {
 	# the eval call is necessary for cases like:
 	# command_args="this \"is a\" test"
 	# to work properly.
-	eval "start-stop-daemon --start \
+	eval 'start-stop-daemon --start \
 		--exec ${command} \
 		${chroot:+--chroot} ${chroot} \
 		${directory:+--chdir} ${directory} \
@@ -175,7 +208,7 @@ start() {
 		${umask+--umask} ${umask} \
 		${_background} ${start_stop_daemon_args} \
 		-- ${command_args} ${command_args_background} \
-		" && start_post
+		' && start_post
 
 	eend "${?}" "Failed to start ${name:-"${0}"}"
 }
@@ -192,14 +225,14 @@ stop() {
 	yesno "${command_progress}" && _progress="--progress"
 
 	stop_pre && \
-	eval "start-stop-daemon --stop \
+	eval 'start-stop-daemon --stop \
 		${retry:+--retry} ${retry} \
 		${command:+--exec} ${command} \
 		${procname:+--name} ${procname} \
 		${pidfile:+--pidfile} ${chroot}${pidfile} \
 		${stopsig:+--signal} ${stopsig} \
 		${_progress} \
-		" && stop_post 
+		' && stop_post 
 
 	eend "${?}" "Failed to stop ${name:-"${0}"}"
 }
@@ -211,6 +244,8 @@ status() {
 	#	0:	running
 	#	1:	stopped
 	#	2:	crashed
+
+	local pid=""
 
 	# XXX:
 	if [ -f "${pidfile}" ]; then
@@ -235,32 +270,6 @@ restart() {
 
 reload() { :; }
 
-action() {
-	local _action="${1}"
-
-	case "${_action}" in
-		"start")
-			start
-			;;
-		"stop")
-			stop
-			;;
-		"reload")
-			reload
-			;;
-		"restart")
-			restart
-			;;
-		"status")
-			status
-			;;
-		*)
-			einfo "Usage: <start|stop|reload|restart|status>"
-			;;
-	esac
-}
-
-
 ##################################################
 # Apply Pre-hacks
 ##################################################
@@ -283,3 +292,4 @@ fi
 if [ "${USER}" != "root" ]; then
 	eend 1 "requires root to manage daemons!"
 fi
+

@@ -1,13 +1,15 @@
 #!/bin/sh
 
+# Author: urain39 <urain39[AT]qq[DOT]com>
+
 set -e
 
 sed -e '/^[ \t]*$/d' \
-	-e '/^[ \t]*#.*$/d' \
+	-e '2,${/^[ \t]*#.*$/d}' \
 	-e 's/^[ \t]*//' \
 	-Ee 's/^#! +([^ ;]+)/#!\1/' \
-	-Ee 's/([^;]+);$/\1/' \
-	-Ee 's/\$([0-9A-Za-z@#!?%_-]|[A-Za-z_][0-9A-Za-z_]+)/\${\1}/g' \
-		src/common.sh > dist/00-common.in
+	-Ee 's/^([^;]+);[ \t]*$/\1/' \
+	-Ee 's/\$([A-Za-z_][0-9A-Za-z_]+|[0-9A-Za-z@#!?%_-])/\${\1}/g' \
+		./src/common.sh > dist/00-common.in
 
 
