@@ -41,15 +41,13 @@ readonly CURSOR_GOTO="\033[%d;%dH"
 ##################################################
 
 __hack_environ__() {
-	if isempty "${COLUMNS}" && isempty "${LINES}"; then
-		eval "$(resize)"
-	fi
+	quietly eval "$(resize)"
 }
 
 __hack_stdout__() {
 	__hack_environ__
 
-	printf "\033[%d;0H" "${LINES}"
+	printf "\033[%d;1H" "${LINES}"
 }
 
 # __hack_xxxxxx__() {
@@ -59,6 +57,34 @@ __hack_stdout__() {
 ##################################################
 # Common Functions
 ##################################################
+
+__checkstatus__() {
+	local _path="${1}"
+	local _mode="${2}"
+	local _owner="${3}"
+
+	if not isempty "${_mode}"; then
+		_status="$(stat -c "%04a" "${_path}")"
+		#_status="${_status// /}"
+
+		if [ "${_status}" != "${_mode}" ]; then
+			einfo "${_path}: correcting mode"
+			quietly chmod "${_mode}" "${_path}"
+			not issuccess && eend 1
+		fi
+	fi
+
+	if not isempty "${_owner}"; then
+		_status="$(stat -c "%U:%G" "${_path}")"
+		#_status="${_status// /}"
+
+		if [ "${_status}" != "${_owner}" ]; then
+			einfo "${_path}: correcting owner"
+			quietly chown "${_owner}" "${_path}"
+			not issuccess && eend 1
+		fi
+	fi
+}
 
 action() {
 	# return codes
@@ -101,7 +127,6 @@ checkpath() {
 	local _mode=""
 	local _owner=""
 	local _path=""
-	local _status=""
 
 	local OPTIND="1"
 	local OPTARG=""
@@ -185,25 +210,7 @@ checkpath() {
 					fi
 				fi
 
-				if not isempty "${_mode}"; then
-					_status="$(stat -c "%04a" "${_path}")"
-					#_status="${_status// /}"
-
-					if [ "${_status}" != "${_mode}" ]; then
-						einfo "${_path}: correcting mode"
-						quietly chmod "${_mode}" "${_path}"
-					fi
-				fi
-
-				if not isempty "${_owner}"; then
-					_status="$(stat -c "%U:%G" "${_path}")"
-					#_status="${_status// /}"
-
-					if [ "${_status}" != "${_owner}" ]; then
-						einfo "${_path}: correcting owner"
-						quietly chown "${_owner}" "${_path}"
-					fi
-				fi
+				__checkstatus__ "${_path}" "${_mode}" "${_owner}"
 				;;
 			"f")
 				if isfile "${_path}"; then
@@ -226,25 +233,7 @@ checkpath() {
 					fi
 				fi
 
-				if not isempty "${_mode}"; then
-					_status="$(stat -c "%04a" "${_path}")"
-					#_status="${_status// /}"
-
-					if [ "${_status}" != "${_mode}" ]; then
-						einfo "${_path}: correcting mode"
-						quietly chmod "${_mode}" "${_path}"
-					fi
-				fi
-
-				if not isempty "${_owner}"; then
-					_status="$(stat -c "%U:%G" "${_path}")"
-					#_status="${_status// /}"
-
-					if [ "${_status}" != "${_owner}" ]; then
-						einfo "${_path}: correcting owner"
-						quietly chown "${_owner}" "${_path}"
-					fi
-				fi
+				__checkstatus__ "${_path}" "${_mode}" "${_owner}"
 				;;
 			"p")
 				if not ispipe "${_path}"; then
@@ -257,25 +246,7 @@ checkpath() {
 					fi
 				fi
 
-				if not isempty "${_mode}"; then
-					_status="$(stat -c "%04a" "${_path}")"
-					#_status="${_status// /}"
-
-					if [ "${_status}" != "${_mode}" ]; then
-						einfo "${_path}: correcting mode"
-						quietly chmod "${_mode}" "${_path}"
-					fi
-				fi
-
-				if not isempty "${_owner}"; then
-					_status="$(stat -c "%U:%G" "${_path}")"
-					#_status="${_status// /}"
-
-					if [ "${_status}" != "${_owner}" ]; then
-						einfo "${_path}: correcting owner"
-						quietly chown "${_owner}" "${_path}"
-					fi
-				fi
+				__checkstatus__ "${_path}" "${_mode}" "${_owner}"
 				;;
 			"W")
 				if isexists "${_path}"; then
@@ -345,7 +316,7 @@ eend() {
 			return 1
 		else
 			printf "${CURSOR_GOTO} ${COLOR_BOLD_RED}*${COLOR_RESET}" \
-				"$((LINES - 1))" "0"
+				"$((LINES - 1))" "1"
 			printf "${CURSOR_GOTO}${COLOR_BOLD_BLUE}[ ${COLOR_BOLD_RED}!! ${COLOR_BOLD_BLUE}]${COLOR_RESET}\n" \
 				"$((LINES - 1))" "$((COLUMNS - 5))"
 
