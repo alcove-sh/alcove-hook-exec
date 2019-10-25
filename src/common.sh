@@ -1,6 +1,5 @@
 # Copyright (c) 2018-2019 The Alcove Project Authors.
 #
-#
 # Maintainer: urain39 <urain39[AT]qq[DOT]com>
 #
 # Requirements: awk chmod chown resize stat
@@ -14,6 +13,7 @@
 # Constants
 ##################################################
 
+# shellcheck disable=SC2034
 readonly __VERSION__="1"
 
 readonly COLOR_RESET="\033[0m"
@@ -97,7 +97,7 @@ checkpath() {
 	local _option=""
 	local _option_mode=""
 	local _truncate="no"
-	local _umask_old="$(umask)"
+	local _umask_old=""
 	local _status=""
 	local _mode=""
 	local _owner=""
@@ -106,9 +106,11 @@ checkpath() {
 	local OPTIND="1"
 	local OPTARG=""
 
+	_umask_old="$(umask)"
+
 	umask 002
 
-	while getopts 'dDfFpm:o:WChqVv' _option; do
+	while getopts 'dDfFpm:o:W' _option; do
 		case "${_option}" in
 			"d")
 				_option_mode="d"
@@ -161,6 +163,9 @@ checkpath() {
 			"W")
 				_option_mode="W"
 				;;
+			*)
+				: TODO: add help here.
+				;;
 		esac
 	done
 
@@ -170,7 +175,7 @@ checkpath() {
 		case "${_option_mode}" in
 			"d")
 				#if yesno "${_truncate}"; then
-				#	WTF?
+				#	WTF!?
 				#fi
 
 				if not isdirectory "${_path}"; then
@@ -185,7 +190,7 @@ checkpath() {
 
 				if not isempty "${_mode}"; then
 					_status="$(stat -c "%a" "${_path}")"
-					_status="${_status// /}"
+					#_status="${_status// /}"
 
 					if [ "${_status}" != "${_mode}" ]; then
 						einfo "${_path}: correcting mode"
@@ -195,7 +200,7 @@ checkpath() {
 
 				if not isempty "${_owner}"; then
 					_status="$(stat -c "%U:%G" "${_path}")"
-					_status="${_status// /}"
+					#_status="${_status// /}"
 
 					if [ "${_status}" != "${_owner}" ]; then
 						einfo "${_path}: correcting owner"
@@ -226,7 +231,7 @@ checkpath() {
 
 				if not isempty "${_mode}"; then
 					_status="$(stat -c "%a" "${_path}")"
-					_status="${_status// /}"
+					#_status="${_status// /}"
 
 					if [ "${_status}" != "${_mode}" ]; then
 						einfo "${_path}: correcting mode"
@@ -236,7 +241,7 @@ checkpath() {
 
 				if not isempty "${_owner}"; then
 					_status="$(stat -c "%U:%G" "${_path}")"
-					_status="${_status// /}"
+					#_status="${_status// /}"
 
 					if [ "${_status}" != "${_owner}" ]; then
 						einfo "${_path}: correcting owner"
@@ -257,7 +262,7 @@ checkpath() {
 
 				if not isempty "${_mode}"; then
 					_status="$(stat -c "%a" "${_path}")"
-					_status="${_status// /}"
+					#_status="${_status// /}"
 
 					if [ "${_status}" != "${_mode}" ]; then
 						einfo "${_path}: correcting mode"
@@ -267,7 +272,7 @@ checkpath() {
 
 				if not isempty "${_owner}"; then
 					_status="$(stat -c "%U:%G" "${_path}")"
-					_status="${_status// /}"
+					#_status="${_status// /}"
 
 					if [ "${_status}" != "${_owner}" ]; then
 						einfo "${_path}: correcting owner"
@@ -277,9 +282,9 @@ checkpath() {
 				;;
 			"W")
 				if isexists "${_path}"; then
-					if [ -d "${_path}" ]; then
+					if isdirectory "${_path}"; then
 						quietly touch "${_path}/.writable" && \
-							quietly rm ${_path}/.writable
+							quietly rm "${_path}/.writable"
 					else
 						quietly mv "${_path}" ".${_path}.writable" && \
 							quietly mv ".${_path}.writable" "${_path}"
@@ -487,22 +492,27 @@ start() {
 
 	ebegin "Starting ${name:-"${0}"}"
 
+	# shellcheck disable=SC2154
 	if yesno "${command_background}"; then
 		if isempty "${pidfile}"; then
 			eend 1 "command_background option requires a pidfile"
 			return 1
 		fi
 
+		# shellcheck disable=SC2154
 		if isempty "${command_args_background}"; then
 			eend 1 "command_background option requires a command_args_background"
 			return 1
 		fi
 
+		# shellcheck disable=SC2034
 		_background="--background --make-pidfile"
 	fi
 
+	# shellcheck disable=SC2034,SC2154
 	not isempty "${output_logger}" && \
 		output_logger_arg="--stdout-logger \"${output_logger}\""
+	# shellcheck disable=SC2034,SC2154
 	not isempty "${error_logger}" && \
 		error_logger_arg="--stderr-logger \"${error_logger}\""
 
@@ -538,6 +548,7 @@ stop() {
 
 	ebegin "Stopping ${name:-"${0}"}"
 
+	# shellcheck disable=SC2154
 	yesno "${command_progress}" && _progress="--progress"
 
 	stop_pre && \

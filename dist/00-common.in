@@ -47,15 +47,16 @@ checkpath() {
 local _option=""
 local _option_mode=""
 local _truncate="no"
-local _umask_old="$(umask)"
+local _umask_old=""
 local _status=""
 local _mode=""
 local _owner=""
 local _path=""
 local OPTIND="1"
 local OPTARG=""
+_umask_old="$(umask)"
 umask 002
-while getopts 'dDfFpm:o:WChqVv' _option; do
+while getopts 'dDfFpm:o:W' _option; do
 case "${_option}" in
 "d")
 _option_mode="d"
@@ -106,6 +107,9 @@ printf("nobody:nobody")
 ;;
 "W")
 _option_mode="W"
+;;
+*)
+: TODO: add help here.
 ;;
 esac
 done
@@ -201,9 +205,9 @@ fi
 ;;
 "W")
 if isexists "${_path}"; then
-if [ -d "${_path}" ]; then
+if isdirectory "${_path}"; then
 quietly touch "${_path}/.writable" && \
-quietly rm ${_path}/.writable
+quietly rm "${_path}/.writable"
 else
 quietly mv "${_path}" ".${_path}.writable" && \
 quietly mv ".${_path}.writable" "${_path}"

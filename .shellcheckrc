@@ -1,0 +1,2 @@
+shell=dash
+disable=SC2059,SC2181,SC1004,SC2148
