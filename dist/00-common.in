@@ -48,10 +48,10 @@ local _option=""
 local _option_mode=""
 local _truncate="no"
 local _umask_old=""
-local _status=""
 local _mode=""
 local _owner=""
 local _path=""
+local _status=""
 local OPTIND="1"
 local OPTARG=""
 _umask_old="$(umask)"
@@ -108,9 +108,6 @@ printf("nobody:nobody")
 "W")
 _option_mode="W"
 ;;
-*)
-: TODO: add help here.
-;;
 esac
 done
 shift "$((OPTIND - 1))"
@@ -127,7 +124,6 @@ fi
 fi
 if not isempty "${_mode}"; then
 _status="$(stat -c "%a" "${_path}")"
-_status="${_status// /}"
 if [ "${_status}" != "${_mode}" ]; then
 einfo "${_path}: correcting mode"
 quietly chmod "${_mode}" "${_path}"
@@ -135,7 +131,6 @@ fi
 fi
 if not isempty "${_owner}"; then
 _status="$(stat -c "%U:%G" "${_path}")"
-_status="${_status// /}"
 if [ "${_status}" != "${_owner}" ]; then
 einfo "${_path}: correcting owner"
 quietly chown "${_owner}" "${_path}"
@@ -162,7 +157,6 @@ fi
 fi
 if not isempty "${_mode}"; then
 _status="$(stat -c "%a" "${_path}")"
-_status="${_status// /}"
 if [ "${_status}" != "${_mode}" ]; then
 einfo "${_path}: correcting mode"
 quietly chmod "${_mode}" "${_path}"
@@ -170,7 +164,6 @@ fi
 fi
 if not isempty "${_owner}"; then
 _status="$(stat -c "%U:%G" "${_path}")"
-_status="${_status// /}"
 if [ "${_status}" != "${_owner}" ]; then
 einfo "${_path}: correcting owner"
 quietly chown "${_owner}" "${_path}"
@@ -188,7 +181,6 @@ fi
 fi
 if not isempty "${_mode}"; then
 _status="$(stat -c "%a" "${_path}")"
-_status="${_status// /}"
 if [ "${_status}" != "${_mode}" ]; then
 einfo "${_path}: correcting mode"
 quietly chmod "${_mode}" "${_path}"
@@ -196,7 +188,6 @@ fi
 fi
 if not isempty "${_owner}"; then
 _status="$(stat -c "%U:%G" "${_path}")"
-_status="${_status// /}"
 if [ "${_status}" != "${_owner}" ]; then
 einfo "${_path}: correcting owner"
 quietly chown "${_owner}" "${_path}"

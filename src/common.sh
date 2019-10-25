@@ -23,7 +23,7 @@ readonly COLOR_BOLD_YELLOW="\033[1;33m"
 readonly COLOR_BOLD_BLUE="\033[1;34m"
 
 #readonly CURSOR_BEGIN="\r"
-#readonly CURSOR_ERASE="\r\033[K"
+#readonly CURSOR_BEGIN_ERASE="\r\033[K"
 readonly CURSOR_GOTO="\033[%d;%dH"
 
 ##################################################
@@ -98,10 +98,10 @@ checkpath() {
 	local _option_mode=""
 	local _truncate="no"
 	local _umask_old=""
-	local _status=""
 	local _mode=""
 	local _owner=""
 	local _path=""
+	local _status=""
 
 	local OPTIND="1"
 	local OPTARG=""
@@ -162,9 +162,6 @@ checkpath() {
 				;;
 			"W")
 				_option_mode="W"
-				;;
-			*)
-				: TODO: add help here.
 				;;
 		esac
 	done
