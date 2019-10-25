@@ -186,7 +186,7 @@ checkpath() {
 				fi
 
 				if not isempty "${_mode}"; then
-					_status="$(stat -c "%a" "${_path}")"
+					_status="$(stat -c "%04a" "${_path}")"
 					#_status="${_status// /}"
 
 					if [ "${_status}" != "${_mode}" ]; then
@@ -227,7 +227,7 @@ checkpath() {
 				fi
 
 				if not isempty "${_mode}"; then
-					_status="$(stat -c "%a" "${_path}")"
+					_status="$(stat -c "%04a" "${_path}")"
 					#_status="${_status// /}"
 
 					if [ "${_status}" != "${_mode}" ]; then
@@ -258,7 +258,7 @@ checkpath() {
 				fi
 
 				if not isempty "${_mode}"; then
-					_status="$(stat -c "%a" "${_path}")"
+					_status="$(stat -c "%04a" "${_path}")"
 					#_status="${_status// /}"
 
 					if [ "${_status}" != "${_mode}" ]; then

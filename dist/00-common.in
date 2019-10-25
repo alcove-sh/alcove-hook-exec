@@ -79,8 +79,8 @@ _option_mode="p"
 _mode="$(
 echo "${OPTARG}" | awk -F'[ \t]+' '{
 if (NF == 1) {
-if (${1} ~ /[0-7]{3,4}/) {
-printf("%04d", ${1})
+if ($1 ~ /[0-7]{3,4}/) {
+printf("%04d", $1)
 exit(0)
 }
 }
@@ -96,9 +96,9 @@ fi
 _owner="$(
 echo "${OPTARG}" | awk -F':' '{
 if (NF == 2) {
-printf("%s:%s", ${1}, ${2})
+printf("%s:%s", $1, $2)
 } else if (NF == 1) {
-printf("%s:%s", ${1}, ${1})
+printf("%s:%s", $1, $1)
 } else {
 printf("nobody:nobody")
 }
@@ -123,7 +123,7 @@ return 1
 fi
 fi
 if not isempty "${_mode}"; then
-_status="$(stat -c "%a" "${_path}")"
+_status="$(stat -c "%04a" "${_path}")"
 if [ "${_status}" != "${_mode}" ]; then
 einfo "${_path}: correcting mode"
 quietly chmod "${_mode}" "${_path}"
@@ -156,7 +156,7 @@ return 1
 fi
 fi
 if not isempty "${_mode}"; then
-_status="$(stat -c "%a" "${_path}")"
+_status="$(stat -c "%04a" "${_path}")"
 if [ "${_status}" != "${_mode}" ]; then
 einfo "${_path}: correcting mode"
 quietly chmod "${_mode}" "${_path}"
@@ -180,7 +180,7 @@ return 1
 fi
 fi
 if not isempty "${_mode}"; then
-_status="$(stat -c "%a" "${_path}")"
+_status="$(stat -c "%04a" "${_path}")"
 if [ "${_status}" != "${_mode}" ]; then
 einfo "${_path}: correcting mode"
 quietly chmod "${_mode}" "${_path}"
