@@ -62,6 +62,7 @@ __checkstatus__() {
 	local _path="${1}"
 	local _mode="${2}"
 	local _owner="${3}"
+	local _status=""
 
 	if not isempty "${_mode}"; then
 		_status="$(stat -c "%04a" "${_path}")"
