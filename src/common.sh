@@ -552,17 +552,17 @@ status() {
 		while read -r _pid; do
 			if isdirectory "/proc/${_pid}"; then
 				if quietly grep "${command}" "/proc/${_pid}/cmdline"; then
-					einfo "Status: running"
+					einfo "status: running"
 					return 0
 				fi
 			fi
 
-			eerror "Status: crashed"
+			eerror "status: crashed"
 			return 2
 		done < "${pidfile}"
 	fi
 
-	einfo "Status: stopped"
+	einfo "status: stopped"
 	return 1
 }
 
