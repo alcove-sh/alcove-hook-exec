@@ -105,10 +105,12 @@ action() {
 
 	case "${_action}" in
 		"start")
-			start
+			start_pre && \
+				start && start_post
 			;;
 		"stop")
-			stop
+			stop_pre && \
+				stop && start_post
 			;;
 		"reload")
 			reload
@@ -192,6 +194,7 @@ checkpath() {
 						} else {
 							exit(1)
 						}
+						exit(0)
 					}'
 				)"
 
@@ -497,19 +500,7 @@ noyes() { :; }
 # Default Actions
 ##################################################
 
-start_pre() {
-	# return codes
-	#	0:	running
-	#	1:	crashed or stopped
-
-	quietly status
-
-	if issuccess; then
-		return 1
-	fi
-
-	return 0
-}
+start_pre() { :; }
 
 start() {
 	local _background=""
@@ -545,7 +536,6 @@ start() {
 		error_logger_arg="--stderr-logger \"${error_logger}\""
 
 	# shellcheck disable=SC2154
-	start_pre && \
 	# the eval call is necessary for cases like:
 	# command_args="this \"is a\" test"
 	# to work properly.
@@ -563,7 +553,7 @@ start() {
 		${umask+--umask} ${umask} \
 		${_background} ${start_stop_daemon_args} \
 		-- ${command_args} ${command_args_background} \
-		" && start_post
+		"
 
 	eend "${?}" "Failed to start ${name:-"${0}"}"
 }
@@ -581,7 +571,6 @@ stop() {
 	yesno "${command_progress}" && _progress="--progress"
 
 	# shellcheck disable=SC2154
-	stop_pre && \
 	eval "start-stop-daemon --stop \
 		${retry:+--retry} ${retry} \
 		${command:+--exec} ${command} \
@@ -589,7 +578,7 @@ stop() {
 		${pidfile:+--pidfile} ${chroot}${pidfile} \
 		${stopsig:+--signal} ${stopsig} \
 		${_progress} \
-		" && stop_post 
+		"
 
 	eend "${?}" "Failed to stop ${name:-"${0}"}"
 }

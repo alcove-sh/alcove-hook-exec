@@ -8,8 +8,6 @@ tmp_dir=/opt/tmp
 . /alcove-hooks/00-common.in
 
 start() {
-	not start_pre && return 1
-
 	mount -t tmpfs tmpfs "${tmp_dir}"
 	checkpath -d -m1777 -o "${owner}" "${tmp_dir}"	
 

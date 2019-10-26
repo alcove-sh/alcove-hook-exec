@@ -50,10 +50,12 @@ action() {
 local _action="${1}"
 case "${_action}" in
 "start")
-start
+start_pre && \
+start && start_post
 ;;
 "stop")
-stop
+stop_pre && \
+stop && start_post
 ;;
 "reload")
 reload
@@ -127,6 +129,7 @@ printf("%s:%s", $1, $1)
 } else {
 exit(1)
 }
+exit(0)
 }'
 )"
 if not issuccess; then
@@ -326,13 +329,7 @@ esac
 return 1
 }
 noyes() { :; }
-start_pre() {
-quietly status
-if issuccess; then
-return 1
-fi
-return 0
-}
+start_pre() { :; }
 start() {
 local _background=""
 ebegin "Starting ${name:-"${0}"}"
@@ -354,7 +351,6 @@ not isempty "${output_logger}" && \
 output_logger_arg="--stdout-logger \"${output_logger}\""
 not isempty "${error_logger}" && \
 error_logger_arg="--stderr-logger \"${error_logger}\""
-start_pre && \
 eval "start-stop-daemon --start \
 --exec ${command} \
 ${chroot:+--chroot} ${chroot} \
@@ -369,7 +365,7 @@ ${command_user+--user} ${command_user} \
 ${umask+--umask} ${umask} \
 ${_background} ${start_stop_daemon_args} \
 -- ${command_args} ${command_args_background} \
-" && start_post
+"
 eend "${?}" "Failed to start ${name:-"${0}"}"
 }
 start_post() { :; }
@@ -378,7 +374,6 @@ stop() {
 local _progress=""
 ebegin "Stopping ${name:-"${0}"}"
 yesno "${command_progress}" && _progress="--progress"
-stop_pre && \
 eval "start-stop-daemon --stop \
 ${retry:+--retry} ${retry} \
 ${command:+--exec} ${command} \
@@ -386,7 +381,7 @@ ${procname:+--name} ${procname} \
 ${pidfile:+--pidfile} ${chroot}${pidfile} \
 ${stopsig:+--signal} ${stopsig} \
 ${_progress} \
-" && stop_post 
+"
 eend "${?}" "Failed to stop ${name:-"${0}"}"
 }
 stop_post() { :; }
