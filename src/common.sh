@@ -2,7 +2,8 @@
 #
 # Maintainer: urain39 <urain39[AT]qq[DOT]com>
 #
-# Requirements: awk chmod chown resize stat
+# Requirements: awk chmod chown grep mkdir mkfifo
+#		resize stat touch
 #
 # For debug:
 #	alias exit='not echo "exited with"'
@@ -71,7 +72,11 @@ __checkstatus__() {
 		if [ "${_status}" != "${_mode}" ]; then
 			einfo "${_path}: correcting mode"
 			quietly chmod "${_mode}" "${_path}"
-			not issuccess && eend 1
+
+			if not issuccess; then
+				eend 1
+				return 1
+			fi
 		fi
 	fi
 
@@ -82,7 +87,11 @@ __checkstatus__() {
 		if [ "${_status}" != "${_owner}" ]; then
 			einfo "${_path}: correcting owner"
 			quietly chown "${_owner}" "${_path}"
-			not issuccess && eend 1
+
+			if not issuccess; then
+				eend 1
+				return 1
+			fi
 		fi
 	fi
 }
@@ -197,10 +206,6 @@ checkpath() {
 	for _path in "${@}"; do
 		case "${_option_mode}" in
 			"d")
-				#if yesno "${_truncate}"; then
-				#	WTF!?
-				#fi
-
 				if not isdirectory "${_path}"; then
 					einfo "${_path}: creating directory"
 					quietly mkdir "${_path}"
@@ -217,7 +222,7 @@ checkpath() {
 				if isfile "${_path}"; then
 					if yesno "${_truncate}"; then
 						einfo "${_path}: truncating file"
-						quietly printf "" > "${_path}"
+						: > "${_path}"
 
 						if not issuccess; then
 							eend 1
@@ -252,11 +257,11 @@ checkpath() {
 			"W")
 				if isexists "${_path}"; then
 					if isdirectory "${_path}"; then
-						quietly touch "${_path}/.writable" && \
-							quietly rm "${_path}/.writable"
+						quietly touch "${_path}/.writable${$}" && \
+							quietly rm "${_path}/.writable${$}"
 					else
-						quietly mv "${_path}" ".${_path}.writable" && \
-							quietly mv ".${_path}.writable" "${_path}"
+						quietly mv "${_path}" "${_path}.writable${$}" && \
+							quietly mv "${_path}.writable${$}" "${_path}"
 					fi
 
 					if issuccess; then
@@ -543,13 +548,13 @@ status() {
 
 	local _pid=""
 
-	# XXX: need check "/proc/${_pid}/stat"
-
 	if isfile "${pidfile}"; then
 		while read -r _pid; do
 			if isdirectory "/proc/${_pid}"; then
-				einfo "Status: running"
-				return 0
+				if quietly grep "${command}" "/proc/${_pid}/cmdline"; then
+					einfo "Status: running"
+					return 0
+				fi
 			fi
 
 			eerror "Status: crashed"
