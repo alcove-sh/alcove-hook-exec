@@ -34,7 +34,7 @@ readonly CURSOR_GOTO="\033[%d;%dH"
 : "${command:=""}"
 : "${command_args:=""}"
 : "${command_user:="nobody:nobody"}"
-: "${pidfile:=""}"
+: "${pidfile:="/var/run/${command##*/}.pid"}"
 : "${start_stop_daemon_args:=""}"
 
 ##################################################
@@ -59,7 +59,7 @@ __hack_stdout__() {
 # Common Functions
 ##################################################
 
-__checkstatus__() {
+____checkstatus____() {
 	local _path="${1}"
 	local _mode="${2}"
 	local _owner="${3}"
@@ -216,7 +216,7 @@ checkpath() {
 					fi
 				fi
 
-				__checkstatus__ "${_path}" "${_mode}" "${_owner}"
+				____checkstatus____ "${_path}" "${_mode}" "${_owner}"
 				;;
 			"f")
 				if isfile "${_path}"; then
@@ -239,7 +239,7 @@ checkpath() {
 					fi
 				fi
 
-				__checkstatus__ "${_path}" "${_mode}" "${_owner}"
+				____checkstatus____ "${_path}" "${_mode}" "${_owner}"
 				;;
 			"p")
 				if not ispipe "${_path}"; then
@@ -252,7 +252,7 @@ checkpath() {
 					fi
 				fi
 
-				__checkstatus__ "${_path}" "${_mode}" "${_owner}"
+				____checkstatus____ "${_path}" "${_mode}" "${_owner}"
 				;;
 			"W")
 				if isexists "${_path}"; then
@@ -474,8 +474,8 @@ start() {
 		fi
 
 		# shellcheck disable=SC2154
-		if isempty "${command_args_background}"; then
-			eend 1 "command_background option requires a command_args_background"
+		if not isempty "${command_args_background}"; then
+			eend 1 "command_background option used with command_args_background"
 			return 1
 		fi
 

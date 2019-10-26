@@ -1,0 +1,15 @@
+#!/bin/sh
+
+HERE="${0%/*}"
+
+nmae="yes"
+command="/usr/bin/yes"
+start_stop_daemon_args="--quiet"
+# force background
+command_background="yes"
+
+. "${HERE}/00-common.in"
+
+
+action "$1"
+
