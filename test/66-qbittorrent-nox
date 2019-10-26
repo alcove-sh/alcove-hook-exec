@@ -9,4 +9,5 @@ pidfile="/var/run/${name}.pid"
 
 . /alcove-hooks/00-common.in
 
+
 action "${1}"

@@ -2,10 +2,11 @@
 
 HERE="${0%/*}"
 
-. $HERE/common.in
-
 command="/usr/sbin/ssh"
 pidfile="/var/run/sshd.pid"
+
+. "${HERE}/00-common.in"
+
 
 action "$1"
 
