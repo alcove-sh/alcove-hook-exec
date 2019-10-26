@@ -34,7 +34,7 @@ readonly CURSOR_GOTO="\033[%d;%dH"
 : "${command:=""}"
 : "${command_args:=""}"
 : "${command_user:="nobody:nobody"}"
-: "${pidfile:="/var/run/${command##*/}.pid"}"
+: "${pidfile:=""}"
 : "${start_stop_daemon_args:=""}"
 
 ##################################################
@@ -42,7 +42,7 @@ readonly CURSOR_GOTO="\033[%d;%dH"
 ##################################################
 
 __hack_environ__() {
-	quietly eval "$(resize)"
+	careless eval "$(resize)"
 }
 
 __hack_stdout__() {
@@ -190,10 +190,15 @@ checkpath() {
 						} else if (NF == 1) {
 							printf("%s:%s", $1, $1)
 						} else {
-							printf("nobody:nobody")
+							exit(1)
 						}
 					}'
 				)"
+
+				if not issuccess; then
+					eerror "checkpath: invalid owner '${OPTARG}'!"
+					return 1
+				fi
 				;;
 			"W")
 				_option_mode="W"
@@ -222,7 +227,7 @@ checkpath() {
 				if isfile "${_path}"; then
 					if yesno "${_truncate}"; then
 						einfo "${_path}: truncating file"
-						: > "${_path}"
+						quietly eval ": > \"${_path}\""
 
 						if not issuccess; then
 							eend 1
@@ -337,6 +342,11 @@ quietly() {
 	"${@}" > /dev/null 2>&1
 }
 
+careless() {
+	"${@}" > /dev/null 2>&1
+	return 0
+}
+
 is() {
 	"${@}" && return 0 \
 		|| return 1
@@ -429,6 +439,34 @@ issuccess() {
 	return 1
 }
 
+ismounted() {
+	local _path="${1}"
+
+	# shellcheck disable=SC2016
+	quietly awk -F'[ \t]+' \
+	-v "path=${_path}" '\
+	BEGIN {
+		found = 0
+	} {
+		if ($2 == path) {
+			found = 1
+			exit(0)
+		}
+	} END {
+		if (found) {
+			exit(0)
+		}
+		exit(1)
+	}
+	' "/proc/${$}/mounts"
+
+	if issuccess; then
+		return 0
+	else
+		return 1
+	fi
+}
+
 yesno() {
 	# return codes
 	#	0:	yes
@@ -459,12 +497,28 @@ noyes() { :; }
 # Default Actions
 ##################################################
 
-start_pre() { :; }
+start_pre() {
+	# return codes
+	#	0:	running
+	#	1:	crashed or stopped
+
+	quietly status
+
+	if issuccess; then
+		return 1
+	fi
+
+	return 0
+}
 
 start() {
 	local _background=""
 
 	ebegin "Starting ${name:-"${0}"}"
+
+	if isempty "${command}"; then
+		ewarn "WARNING: \${command} is empty or not set!"
+	fi
 
 	# shellcheck disable=SC2154
 	if yesno "${command_background}"; then
@@ -490,11 +544,12 @@ start() {
 	not isempty "${error_logger}" && \
 		error_logger_arg="--stderr-logger \"${error_logger}\""
 
+	# shellcheck disable=SC2154
 	start_pre && \
 	# the eval call is necessary for cases like:
 	# command_args="this \"is a\" test"
 	# to work properly.
-	eval 'start-stop-daemon --start \
+	eval "start-stop-daemon --start \
 		--exec ${command} \
 		${chroot:+--chroot} ${chroot} \
 		${directory:+--chdir} ${directory} \
@@ -508,7 +563,7 @@ start() {
 		${umask+--umask} ${umask} \
 		${_background} ${start_stop_daemon_args} \
 		-- ${command_args} ${command_args_background} \
-		' && start_post
+		" && start_post
 
 	eend "${?}" "Failed to start ${name:-"${0}"}"
 }
@@ -525,15 +580,16 @@ stop() {
 	# shellcheck disable=SC2154
 	yesno "${command_progress}" && _progress="--progress"
 
+	# shellcheck disable=SC2154
 	stop_pre && \
-	eval 'start-stop-daemon --stop \
+	eval "start-stop-daemon --stop \
 		${retry:+--retry} ${retry} \
 		${command:+--exec} ${command} \
 		${procname:+--name} ${procname} \
 		${pidfile:+--pidfile} ${chroot}${pidfile} \
 		${stopsig:+--signal} ${stopsig} \
 		${_progress} \
-		' && stop_post 
+		" && stop_post 
 
 	eend "${?}" "Failed to stop ${name:-"${0}"}"
 }
@@ -582,14 +638,6 @@ __hack_stdout__
 ##################################################
 # Apply Pre-checks
 ##################################################
-
-if isempty "${command}"; then
-	ewarn "WARNING: \${command} is empty or not set!"
-fi
-
-if isempty "${pidfile}"; then
-	ewarn "WARNING: \${pidfile} is empty or not set!"
-fi
 
 if [ "${USER}" != "root" ]; then
 	eend 1 "ERROR: requires root to manage daemons!"

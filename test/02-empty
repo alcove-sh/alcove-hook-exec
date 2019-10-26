@@ -1,0 +1,6 @@
+#!/bin/sh
+
+. /alcove-hooks/00-common.in
+
+action "${1}"
+

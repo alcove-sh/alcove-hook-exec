@@ -4,9 +4,10 @@ HERE="${0%/*}"
 
 nmae="yes"
 command="/usr/bin/yes"
-start_stop_daemon_args="--quiet"
 # force background
 command_background="yes"
+pidfile="/var/run/yes.pid"
+start_stop_daemon_args="--quiet"
 
 . "${HERE}/00-common.in"
 

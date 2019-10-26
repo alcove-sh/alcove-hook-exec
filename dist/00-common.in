@@ -9,10 +9,10 @@ readonly CURSOR_GOTO="\033[%d;%dH"
 : "${command:=""}"
 : "${command_args:=""}"
 : "${command_user:="nobody:nobody"}"
-: "${pidfile:="/var/run/${command##*/}.pid"}"
+: "${pidfile:=""}"
 : "${start_stop_daemon_args:=""}"
 __hack_environ__() {
-quietly eval "$(resize)"
+careless eval "$(resize)"
 }
 __hack_stdout__() {
 __hack_environ__
@@ -125,10 +125,14 @@ printf("%s:%s", $1, $2)
 } else if (NF == 1) {
 printf("%s:%s", $1, $1)
 } else {
-printf("nobody:nobody")
+exit(1)
 }
 }'
 )"
+if not issuccess; then
+eerror "checkpath: invalid owner '${OPTARG}'!"
+return 1
+fi
 ;;
 "W")
 _option_mode="W"
@@ -153,7 +157,7 @@ ____checkstatus____ "${_path}" "${_mode}" "${_owner}"
 if isfile "${_path}"; then
 if yesno "${_truncate}"; then
 einfo "${_path}: truncating file"
-: > "${_path}"
+quietly eval ": > \"${_path}\""
 if not issuccess; then
 eend 1
 return 1
@@ -239,6 +243,10 @@ return 0
 quietly() {
 "${@}" > /dev/null 2>&1
 }
+careless() {
+"${@}" > /dev/null 2>&1
+return 0
+}
 is() {
 "${@}" && return 0 \
 || return 1
@@ -283,6 +291,30 @@ return 0
 fi
 return 1
 }
+ismounted() {
+local _path="${1}"
+quietly awk -F'[ \t]+' \
+-v "path=${_path}" '\
+BEGIN {
+found = 0
+} {
+if ($2 == path) {
+found = 1
+exit(0)
+}
+} END {
+if (found) {
+exit(0)
+}
+exit(1)
+}
+' "/proc/${$}/mounts"
+if issuccess; then
+return 0
+else
+return 1
+fi
+}
 yesno() {
 [ "${#}" -lt 1 ] && return 1
 local _value="${1}"
@@ -294,10 +326,19 @@ esac
 return 1
 }
 noyes() { :; }
-start_pre() { :; }
+start_pre() {
+quietly status
+if issuccess; then
+return 1
+fi
+return 0
+}
 start() {
 local _background=""
 ebegin "Starting ${name:-"${0}"}"
+if isempty "${command}"; then
+ewarn "WARNING: \${command} is empty or not set!"
+fi
 if yesno "${command_background}"; then
 if isempty "${pidfile}"; then
 eend 1 "command_background option requires a pidfile"
@@ -314,7 +355,7 @@ output_logger_arg="--stdout-logger \"${output_logger}\""
 not isempty "${error_logger}" && \
 error_logger_arg="--stderr-logger \"${error_logger}\""
 start_pre && \
-eval 'start-stop-daemon --start \
+eval "start-stop-daemon --start \
 --exec ${command} \
 ${chroot:+--chroot} ${chroot} \
 ${directory:+--chdir} ${directory} \
@@ -328,7 +369,7 @@ ${command_user+--user} ${command_user} \
 ${umask+--umask} ${umask} \
 ${_background} ${start_stop_daemon_args} \
 -- ${command_args} ${command_args_background} \
-' && start_post
+" && start_post
 eend "${?}" "Failed to start ${name:-"${0}"}"
 }
 start_post() { :; }
@@ -338,14 +379,14 @@ local _progress=""
 ebegin "Stopping ${name:-"${0}"}"
 yesno "${command_progress}" && _progress="--progress"
 stop_pre && \
-eval 'start-stop-daemon --stop \
+eval "start-stop-daemon --stop \
 ${retry:+--retry} ${retry} \
 ${command:+--exec} ${command} \
 ${procname:+--name} ${procname} \
 ${pidfile:+--pidfile} ${chroot}${pidfile} \
 ${stopsig:+--signal} ${stopsig} \
 ${_progress} \
-' && stop_post 
+" && stop_post 
 eend "${?}" "Failed to stop ${name:-"${0}"}"
 }
 stop_post() { :; }
@@ -372,12 +413,6 @@ stop && start
 reload() { :; }
 __hack_environ__
 __hack_stdout__
-if isempty "${command}"; then
-ewarn "WARNING: \${command} is empty or not set!"
-fi
-if isempty "${pidfile}"; then
-ewarn "WARNING: \${pidfile} is empty or not set!"
-fi
 if [ "${USER}" != "root" ]; then
 eend 1 "ERROR: requires root to manage daemons!"
 exit 1
