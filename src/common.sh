@@ -33,7 +33,7 @@ readonly CURSOR_GOTO="\033[%d;%dH"
 
 : "${command:=""}"
 : "${command_args:=""}"
-: "${command_user:="nobody:nobody"}"
+: "${command_user:="root:root"}"
 : "${pidfile:=""}"
 : "${start_stop_daemon_args:=""}"
 
@@ -376,8 +376,8 @@ isempty() {
 
 isexists() {
 	# return codes
-	#	0:	is
-	#	1:	not
+	#	0:	exists
+	#	1:	not exists
 
 	#[ "${#}" -lt 1 ] && return 1
 
@@ -390,8 +390,8 @@ isexists() {
 
 isfile() {
 	# return codes
-	#	0:	is
-	#	1:	not
+	#	0:	file
+	#	1:	not file
 
 	#[ "${#}" -lt 1 ] && return 1
 
@@ -404,8 +404,8 @@ isfile() {
 
 ispipe() {
 	# return codes
-	#	0:	is
-	#	1:	not
+	#	0:	pipe
+	#	1:	not pipe
 
 	#[ "${#}" -lt 1 ] && return 1
 
@@ -418,8 +418,8 @@ ispipe() {
 
 isdirectory() {
 	# return codes
-	#	0:	is
-	#	1:	not
+	#	0:	directory
+	#	1:	not directory
 
 	#[ "${#}" -lt 1 ] && return 1
 
@@ -432,8 +432,8 @@ isdirectory() {
 
 issuccess() {
 	# return codes
-	#	0:	is
-	#	1:	not
+	#	0:	success
+	#	1:	failed
 
 	if [ "${?}" = 0 ]; then
 		return 0
@@ -443,6 +443,10 @@ issuccess() {
 }
 
 ismounted() {
+#	return codes
+#	0:	mounted
+#	1:	unmounted
+
 	local _path="${1}"
 
 	# shellcheck disable=SC2016
@@ -451,6 +455,7 @@ ismounted() {
 	BEGIN {
 		found = 0
 	} {
+		gsub(/\\040/, " ", $2)
 		if ($2 == path) {
 			found = 1
 			exit(0)

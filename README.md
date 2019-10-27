@@ -53,7 +53,7 @@ status() {
 		return 0
 	fi
 
-	einfo "statis: unmounted"
+	einfo "status: unmounted"
 	return 1
 }
 
