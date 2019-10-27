@@ -3,8 +3,8 @@
 **TODO:**
 - [x] checkpath dir test
 - [x] checkpath file test
-- [ ] checkpath pipe test
-- [ ] checkpath correct test
+- [x] checkpath pipe test
+- [x] checkpath correct test
 
 **Examples:**
 ```sh

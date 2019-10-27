@@ -250,6 +250,18 @@ careless() {
 "${@}" > /dev/null 2>&1
 return 0
 }
+shouldbe() {
+[ "${#}" -lt 2 ] && return 1
+local _shouldbe="${1}"
+local _result=""
+shift # skip _shouldbe
+_result="$("${@}" 2> /dev/null)"
+if [ "${_result}" = "${_shouldbe}" ]; then
+return 0
+fi
+eend 1 "shouldbe: expected '${_shouldbe}', but found '${_result}'"
+return 1
+}
 is() {
 "${@}" && return 0 \
 || return 1

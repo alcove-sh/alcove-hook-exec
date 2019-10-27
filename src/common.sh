@@ -3,7 +3,7 @@
 # Maintainer: urain39 <urain39[AT]qq[DOT]com>
 #
 # Requirements: awk chmod chown grep mkdir mkfifo
-#		resize stat touch
+#		resize stat start-stop-daemon touch
 #
 # For debug:
 #	alias exit='not echo "exited with"'
@@ -47,7 +47,6 @@ __hack_environ__() {
 
 __hack_stdout__() {
 	__hack_environ__
-
 	printf "\033[%d;1H" "${LINES}"
 }
 
@@ -350,6 +349,27 @@ careless() {
 	return 0
 }
 
+shouldbe() {
+	# return codes
+	#	0:	matched
+	#	1:	not match
+
+	[ "${#}" -lt 2 ] && return 1
+
+	local _shouldbe="${1}"
+	local _result=""
+
+	shift # skip _shouldbe
+	_result="$("${@}" 2> /dev/null)"
+
+	if [ "${_result}" = "${_shouldbe}" ]; then
+		return 0
+	fi
+
+	eend 1 "shouldbe: expected '${_shouldbe}', but found '${_result}'"
+	return 1
+}
+
 is() {
 	"${@}" && return 0 \
 		|| return 1
@@ -443,9 +463,9 @@ issuccess() {
 }
 
 ismounted() {
-#	return codes
-#	0:	mounted
-#	1:	unmounted
+	# return codes
+	#	0:	mounted
+	#	1:	unmounted
 
 	local _path="${1}"
 

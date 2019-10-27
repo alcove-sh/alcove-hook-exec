@@ -1,0 +1,33 @@
+#!/bin/sh
+
+name="checkpath"
+
+. /alcove-hooks/00-common.in
+
+start() {
+	checkpath -d /tmp/checkpath \
+		/tmp/checkpath/subdir
+
+	checkpath -d -o nobody:root /tmp/checkpath/subdir
+
+	checkpath -f -o root:www-data /tmp/checkpath/file1
+
+	checkpath -p -m 640 /tmp/checkpath/mypipe.fifo
+}
+
+stop() {
+	rm -r /tmp/checkpath
+}
+
+status() {
+	shouldbe "root:root" stat -c '%U:%G' "/tmp/checkpath" && \
+	shouldbe "nobody:root" stat -c '%U:%G' "/tmp/checkpath/subdir" && \
+	shouldbe "root:root" stat -c '%U:%G' "/tmp/checkpath" && \
+	shouldbe "0640" stat -c '%04a' "/tmp/checkpath/mypipe.fifo" || \
+	eerror "status: crashed" && exit 1
+
+	einfo "status: running"
+}
+
+action "${1}"
+
