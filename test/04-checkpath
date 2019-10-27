@@ -23,6 +23,8 @@ status() {
 	shouldbe "root:root" stat -c '%U:%G' "/tmp/checkpath" && \
 	shouldbe "nobody:root" stat -c '%U:%G' "/tmp/checkpath/subdir" && \
 	shouldbe "root:root" stat -c '%U:%G' "/tmp/checkpath" && \
+	shouldbe "root:www-data" stat -c '%U:%G' "/tmp/checkpath/file1" && \
+	shouldbe "0775" stat -c '%04a' "/tmp/checkpath/subdir" && \
 	shouldbe "0640" stat -c '%04a' "/tmp/checkpath/mypipe.fifo" || \
 	eerror "status: crashed" && exit 1
 

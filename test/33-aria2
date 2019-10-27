@@ -7,17 +7,16 @@ pidfile="/var/run/aria2.pid"
 : "${cfgfile:="/etc/aria2.conf"}"
 command_args="--enable-rpc=true --conf-path=${cfgfile}"
 command_background="yes"
-#output_log="/var/lib/arai2/aria2.log"
-#error_log="/var/lib/aria2/aria2.err"
-
+output_log="/var/lib/aria2/aria2.log"
+error_log="/var/lib/aria2/aria2.err"
 
 . /alcove-hooks/00-common.in
 
 
 start_pre() {
-	checkpath -f -m 640 -o aria2 \
-		/var/lib/aria2/aria2.log \
-		/var/lib/aria2/aria2.err \
+	checkpath -f -m 660 -o aria2 \
+		"${output_log}" \
+		"${error_log}" \
 		/var/lib/aria2/aria2.session
 }
 
