@@ -291,6 +291,8 @@ checkpath() {
 				;;
 			"W")
 				if isexists "${_path}"; then
+					einfo "${_path}: writable check"
+
 					if isdirectory "${_path}"; then
 						quietly touch "${_path}/.writable${$}" && \
 							quietly rm "${_path}/.writable${$}"
@@ -300,6 +302,7 @@ checkpath() {
 					fi
 
 					if not issuccess; then
+						eend 1
 						_retval="1"
 						break
 					fi

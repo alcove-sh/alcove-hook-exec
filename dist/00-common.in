@@ -209,6 +209,7 @@ ____checkstatus____ "${_path}" "${_mode}" "${_owner}"
 ;;
 "W")
 if isexists "${_path}"; then
+einfo "${_path}: writable check"
 if isdirectory "${_path}"; then
 quietly touch "${_path}/.writable${$}" && \
 quietly rm "${_path}/.writable${$}"
@@ -217,6 +218,7 @@ quietly mv "${_path}" "${_path}.writable${$}" && \
 quietly mv "${_path}.writable${$}" "${_path}"
 fi
 if not issuccess; then
+eend 1
 _retval="1"
 break
 fi

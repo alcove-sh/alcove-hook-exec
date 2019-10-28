@@ -41,6 +41,11 @@ status() {
 
 	# it's a error test
 	#shouldbe '19' stat -c '%s' "/tmp/checkpath/subdir/file2"
+
+	checkpath -W '/tmp' \
+		'/dev' \
+		'/sys' \
+		'proc'
 }
 
 action "${1}"
