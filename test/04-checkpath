@@ -35,9 +35,10 @@ status() {
 	shouldbe '0' stat -c '%s' "/tmp/checkpath/subdir/file2"
 
 	checkpath -D '/tmp/checkpath/subdir'
-	shouldbe 'root:root' stat -c '%U:%G' "/tmp/checkpath/subdir"
+	# it's wrong, truncate not modify owner
+	#shouldbe 'root:root' stat -c '%U:%G' "/tmp/checkpath/subdir"
 	shouldbe '' stat -c '%s' "/tmp/checkpath/subdir/file2"
-	
+
 	# it's a error test
 	#shouldbe '19' stat -c '%s' "/tmp/checkpath/subdir/file2"
 }

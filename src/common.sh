@@ -3,7 +3,7 @@
 # Maintainer: urain39 <urain39[AT]qq[DOT]com>
 #
 # Requirements: awk chmod chown grep mkdir mkfifo
-#		resize stat start-stop-daemon touch
+#		resize sed stat start-stop-daemon touch
 #
 # For debug:
 #	alias exit='not echo "exited with"'
@@ -228,7 +228,7 @@ checkpath() {
 			"d")
 				if yesno "${_truncate}"; then
 					einfo "${_path}: truncating directory"
-					quietly rm -r "${_path}"
+					quietly eval "find \"${_path}\" | sed '1d' | xargs rm -rf"
 
 					if not issuccess; then
 						eend 1
@@ -299,21 +299,18 @@ checkpath() {
 							quietly mv "${_path}.writable${$}" "${_path}"
 					fi
 
-					if issuccess; then
+					if not issuccess; then
+						_retval="1"
 						break
 					fi
 				fi
-
-				eend 1
-				_retval="1"
-				break
 				;;
 		esac
 	done
 
 	umask "${_umask_old}"
 
-	eend "${_retval}" "checkpath: apply changes failed"
+	eend "${_retval}" "checkpath: apply changes or checks failed"
 	return "${_retval}"
 }
 
@@ -394,12 +391,14 @@ shouldbe() {
 	shift # skip _shouldbe
 	_result="$("${@}" 2> /dev/null)"
 
-	if [ "${_result}" = "${_shouldbe}" ]; then
-		return 0
+	if [ "${_result}" != "${_shouldbe}" ]; then
+		einfo "shouldbe: ${@}"
+		eend 1 # "^^ We'd like to add a failed flag above"
+		eerror "shouldbe: NOTE: expected '${_shouldbe}', but found '${_result}'"
+		return 1
 	fi
 
-	eend 1 "shouldbe: expected '${_shouldbe}', but found '${_result}'"
-	return 1
+	return 0
 }
 
 is() {

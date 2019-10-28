@@ -156,7 +156,7 @@ case "${_option_mode}" in
 "d")
 if yesno "${_truncate}"; then
 einfo "${_path}: truncating directory"
-quietly rm -r "${_path}"
+quietly eval "find \"${_path}\" | sed '1d' | xargs rm -rf"
 if not issuccess; then
 eend 1
 _retval="1"
@@ -216,18 +216,16 @@ else
 quietly mv "${_path}" "${_path}.writable${$}" && \
 quietly mv "${_path}.writable${$}" "${_path}"
 fi
-if issuccess; then
-break
-fi
-fi
-eend 1
+if not issuccess; then
 _retval="1"
 break
+fi
+fi
 ;;
 esac
 done
 umask "${_umask_old}"
-eend "${_retval}" "checkpath: apply changes failed"
+eend "${_retval}" "checkpath: apply changes or checks failed"
 return "${_retval}"
 }
 ebegin() {
@@ -279,11 +277,13 @@ local _shouldbe="${1}"
 local _result=""
 shift # skip _shouldbe
 _result="$("${@}" 2> /dev/null)"
-if [ "${_result}" = "${_shouldbe}" ]; then
-return 0
-fi
-eend 1 "shouldbe: expected '${_shouldbe}', but found '${_result}'"
+if [ "${_result}" != "${_shouldbe}" ]; then
+einfo "shouldbe: ${@}"
+eend 1 # "^^ We'd like to add a failed flag above"
+eerror "shouldbe: NOTE: expected '${_shouldbe}', but found '${_result}'"
 return 1
+fi
+return 0
 }
 is() {
 "${@}" && return 0 \
