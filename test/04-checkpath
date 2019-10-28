@@ -20,15 +20,26 @@ stop() {
 }
 
 status() {
-	shouldbe "root:root" stat -c '%U:%G' "/tmp/checkpath" && \
-	shouldbe "nobody:root" stat -c '%U:%G' "/tmp/checkpath/subdir" && \
-	shouldbe "root:root" stat -c '%U:%G' "/tmp/checkpath" && \
-	shouldbe "root:www-data" stat -c '%U:%G' "/tmp/checkpath/file1" && \
-	shouldbe "0775" stat -c '%04a' "/tmp/checkpath/subdir" && \
-	shouldbe "0640" stat -c '%04a' "/tmp/checkpath/mypipe.fifo" || \
-	eerror "status: crashed" && exit 1
+	shouldbe "root:root" stat -c '%U:%G' "/tmp/checkpath"
+	shouldbe "nobody:root" stat -c '%U:%G' "/tmp/checkpath/subdir"
+	shouldbe "root:root" stat -c '%U:%G' "/tmp/checkpath"
+	shouldbe "root:www-data" stat -c '%U:%G' "/tmp/checkpath/file1"
+	shouldbe "0775" stat -c '%04a' "/tmp/checkpath/subdir"
+	shouldbe "0640" stat -c '%04a' "/tmp/checkpath/mypipe.fifo"
 
-	einfo "status: running"
+	checkpath -f "/tmp/checkpath/subdir/file2"
+	shouldbe 'root:root' stat -c '%U:%G' "/tmp/checkpath/subdir/file2"
+	shouldbe '0664' stat -c '%04a' "/tmp/checkpath/subdir/file2"
+
+	checkpath -F '/tmp/checkpath/subdir/file2'
+	shouldbe '0' stat -c '%s' "/tmp/checkpath/subdir/file2"
+
+	checkpath -D '/tmp/checkpath/subdir'
+	shouldbe 'root:root' stat -c '%U:%G' "/tmp/checkpath/subdir"
+	shouldbe '' stat -c '%s' "/tmp/checkpath/subdir/file2"
+	
+	# it's a error test
+	#shouldbe '19' stat -c '%s' "/tmp/checkpath/subdir/file2"
 }
 
 action "${1}"

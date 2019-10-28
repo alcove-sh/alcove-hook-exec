@@ -5,6 +5,7 @@
 - [x] checkpath file test
 - [x] checkpath pipe test
 - [x] checkpath correct test
+- [x] checkpath truncate test
 
 **Examples:**
 ```sh

@@ -59,6 +59,10 @@ __hack_stdout__() {
 ##################################################
 
 ____checkstatus____() {
+	# return codes
+	#	0:	ok
+	#	1:	fail
+
 	local _path="${1}"
 	local _mode="${2}"
 	local _owner="${3}"
@@ -138,6 +142,7 @@ checkpath() {
 	local _mode=""
 	local _owner=""
 	local _path=""
+	local _retval="0"
 
 	local OPTIND="1"
 	local OPTARG=""
@@ -180,7 +185,8 @@ checkpath() {
 
 				if not issuccess; then
 					eerror "checkpath: invalid mode '${OPTARG}'!"
-					return 1
+					_retval="1"
+					break
 				fi
 				;;
 			"o")
@@ -199,7 +205,8 @@ checkpath() {
 
 				if not issuccess; then
 					eerror "checkpath: invalid owner '${OPTARG}'!"
-					return 1
+					_retval="1"
+					break
 				fi
 				;;
 			"W")
@@ -208,41 +215,61 @@ checkpath() {
 		esac
 	done
 
+	if [ "${_retval}" != 0 ]; then
+		eend 1 "checkpath: parse arguments failed"
+		umask "${_umask_old}"
+		return "${_retval}"
+	fi
+
 	shift "$((OPTIND - 1))"
 
 	for _path in "${@}"; do
 		case "${_option_mode}" in
 			"d")
+				if yesno "${_truncate}"; then
+					einfo "${_path}: truncating directory"
+					quietly rm -r "${_path}"
+
+					if not issuccess; then
+						eend 1
+						_retval="1"
+						break
+					fi
+				fi
+
 				if not isdirectory "${_path}"; then
 					einfo "${_path}: creating directory"
 					quietly mkdir "${_path}"
 
 					if not issuccess; then
 						eend 1
-						return 1
+						_retval="1"
+						break
 					fi
 				fi
 
 				____checkstatus____ "${_path}" "${_mode}" "${_owner}"
 				;;
 			"f")
-				if isfile "${_path}"; then
-					if yesno "${_truncate}"; then
-						einfo "${_path}: truncating file"
-						quietly eval ": > \"${_path}\""
+				if yesno "${_truncate}"; then
+					einfo "${_path}: truncating file"
+					quietly eval ": > \"${_path}\""
 
-						if not issuccess; then
-							eend 1
-							return 1
-						fi
+					if not issuccess; then
+						eend 1
+						_retval="1"
+						break
 					fi
-				else
+				fi
+
+				if not isfile "${_path}"; then
 					einfo "${_path}: creating file"
 					quietly touch "${_path}"
 
 					if not issuccess; then
 						eend 1
-						return 1
+						_retval="1"
+						break
 					fi
 				fi
 
@@ -255,7 +282,8 @@ checkpath() {
 
 					if not issuccess; then
 						eend 1
-						return 1
+						_retval="1"
+						break
 					fi
 				fi
 
@@ -272,17 +300,21 @@ checkpath() {
 					fi
 
 					if issuccess; then
-						return 0
+						break
 					fi
 				fi
 
 				eend 1
-				return 1
+				_retval="1"
+				break
 				;;
 		esac
 	done
 
 	umask "${_umask_old}"
+
+	eend "${_retval}" "checkpath: apply changes failed"
+	return "${_retval}"
 }
 
 ebegin() {
