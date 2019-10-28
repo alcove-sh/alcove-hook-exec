@@ -395,7 +395,7 @@ shouldbe() {
 	_result="$("${@}" 2> /dev/null)"
 
 	if [ "${_result}" != "${_shouldbe}" ]; then
-		einfo "shouldbe: ${@}"
+		einfo "shouldbe: ${*}"
 		eend 1 # "^^ We'd like to add a failed flag above"
 		eerror "shouldbe: NOTE: expected '${_shouldbe}', but found '${_result}'"
 		return 1
