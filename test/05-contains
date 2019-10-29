@@ -1,0 +1,22 @@
+#!/bin/sh
+
+. /alcove-hooks/common.in
+
+ebegin "test contains"
+contains "75849" "5"; eend "$?"
+ebegin "test contains"
+contains "75849" "75"; eend "$?"
+ebegin "test contains"
+contains "75849" "49"; eend "$?"
+ebegin "test contains"
+contains "75849" "58"; eend "$?"
+ebegin "test contains"
+contains "75849" "75849"; eend "$?"
+
+ebegin "test contains failed"
+contains "75849" "6"; eend "$?"
+ebegin "test contains failed"
+contains "75849" "22"; eend "$?"
+ebegin "test contains failed"
+contains "75849" "33"; eend "$?"
+

@@ -174,7 +174,7 @@ checkpath() {
 				_mode="$(
 					echo "${OPTARG}" | awk -F'[ \t]+' '{
 						if (NF == 1) {
-							if ($1 ~ /[0-7]{3,4}/) {
+							if ($1 ~ /^[0-7]{3,4}$/) {
 								printf("%04d", $1)
 								exit(0)
 							}
@@ -312,8 +312,6 @@ checkpath() {
 	done
 
 	umask "${_umask_old}"
-
-	eend "${_retval}" "checkpath: apply changes or checks failed"
 	return "${_retval}"
 }
 
@@ -402,6 +400,20 @@ shouldbe() {
 	fi
 
 	return 0
+}
+
+contains() {
+	# return codes
+	#	0:	contains
+	#	1:	not contains
+
+	[ "${#}" -lt 2 ] && return 1
+
+	local _string="${1}"
+	local _search="${2}"
+
+	[ "${_string#*${_search}}" = "${_string}" ] && return 1 \
+		|| return 0
 }
 
 is() {
@@ -654,7 +666,7 @@ status() {
 
 	if isfile "${pidfile}"; then
 		while read -r _pid; do
-			if isdirectory "/proc/${_pid}"; then
+			if isfile "/proc/${_pid}/cmdline"; then
 				if quietly grep "${command}" "/proc/${_pid}/cmdline"; then
 					einfo "status: running"
 					return 0
