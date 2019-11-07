@@ -5,7 +5,7 @@ name="fsck"
 . /alcove-hooks/00-common.in
 
 start_pre() {
-	case "${0}" in
+	case "${0##*/}" in
 		00*)
 			return 0
 			;;
@@ -18,6 +18,8 @@ start_pre() {
 start() {
 	local _info=""
 	local _block=""
+
+        local IFS=''
 
 	if not quietly ls /var/run/*.pid; then
 		return 0 # no crash
