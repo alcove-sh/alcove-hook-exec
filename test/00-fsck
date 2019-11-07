@@ -1,0 +1,44 @@
+#!/bin/sh
+
+name="fsck"
+
+. /alcove-hooks/00-common.in
+
+start_pre() {
+	case "${0}" in
+		00*)
+			return 0
+			;;
+		*)
+			eend 1 "This script needs run at first of boot!"
+			return 1
+	esac
+}
+
+start() {
+	local _info=""
+	local _block=""
+
+	if not quietly ls /var/run/*.pid; then
+		return 0 # no crash
+	fi
+
+	for _block in /dev/block/mmcblk1p*; do
+		if quietly grep "${_block}" /proc/self/mounts; then
+			continue # mounted
+		fi
+
+		einfo "${_block}"
+		fsck -y "${_block}" 2>&1 | while read -r _info; do
+			einfo "${_info}"
+		done
+	done
+}
+
+# Do nothing to stop.
+stop() { :; }
+
+# Status always show stopped.
+
+action "${1}"
+

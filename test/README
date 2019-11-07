@@ -1,0 +1,11 @@
+00: check
+01: mount
+02: system
+03: network
+04: unused
+05: unused
+06: X11(?)
+05: unused
+07~99: user's daemon 
+
+
